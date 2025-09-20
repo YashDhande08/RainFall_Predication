@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rainfall Prediction System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .form-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 0.95em;
+        }
+
+        .form-group input {
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4facfe;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .form-group input:hover {
+            border-color: #4facfe;
+        }
+
+        .section-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4facfe;
+        }
+
+        .predict-btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px auto;
+            display: block;
+            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        .predict-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(79, 172, 254, 0.4);
+        }
+
+        .predict-btn:active {
+            transform: translateY(0);
+        }
+
+        .predict-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-container {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 30px;
+            display: none;
+        }
+
+        .result-container.show {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-value {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .result-message {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4facfe;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .info-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 30px;
+        }
+
+        .info-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .info-section p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .form-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌧️ Rainfall Prediction System</h1>
+            <p>Enter weather conditions to predict rainfall amount</p>
+        </div>
+
+        <div class="content">
+            <form id="predictionForm">
+                <div class="form-container">
+                    <div>
+                        <h3 class="section-title">🌡️ Temperature</h3>
+                        <div class="form-group">
+                            <label for="temp_high_f">High Temperature (°F)</label>
+                            <input type="number" id="temp_high_f" name="temp_high_f" required min="-50" max="150">
+                        </div>
+                        <div class="form-group">
+                            <label for="temp_avg_f">Average Temperature (°F)</label>
+                            <input type="number" id="temp_avg_f" name="temp_avg_f" required min="-50" max="150">
+                        </div>
+                        <div class="form-group">
+                            <label for="temp_low_f">Low Temperature (°F)</label>
+                            <input type="number" id="temp_low_f" name="temp_low_f" required min="-50" max="150">
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="section-title">💧 Humidity & Dew Point</h3>
+                        <div class="form-group">
+                            <label for="dew_point_avg_f">Average Dew Point (°F)</label>
+                            <input type="number" id="dew_point_avg_f" name="dew_point_avg_f" required min="-50" max="100" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="humidity_high_percent">High Humidity (%)</label>
+                            <input type="number" id="humidity_high_percent" name="humidity_high_percent" required min="0" max="100" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="humidity_avg_percent">Average Humidity (%)</label>
+                            <input type="number" id="humidity_avg_percent" name="humidity_avg_percent" required min="0" max="100" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="humidity_low_percent">Low Humidity (%)</label>
+                            <input type="number" id="humidity_low_percent" name="humidity_low_percent" required min="0" max="100" step="0.1">
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="section-title">🌬️ Wind & Pressure</h3>
+                        <div class="form-group">
+                            <label for="sea_level_pressure_avg_inches">Sea Level Pressure (inches)</label>
+                            <input type="number" id="sea_level_pressure_avg_inches" name="sea_level_pressure_avg_inches" required min="25" max="35" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label for="wind_high_mph">High Wind Speed (MPH)</label>
+                            <input type="number" id="wind_high_mph" name="wind_high_mph" required min="0" max="100" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="wind_avg_mph">Average Wind Speed (MPH)</label>
+                            <input type="number" id="wind_avg_mph" name="wind_avg_mph" required min="0" max="100" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="wind_gust_mph">Wind Gust (MPH)</label>
+                            <input type="number" id="wind_gust_mph" name="wind_gust_mph" required min="0" max="150" step="0.1">
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="section-title">👁️ Visibility</h3>
+                        <div class="form-group">
+                            <label for="visibility_high_miles">High Visibility (miles)</label>
+                            <input type="number" id="visibility_high_miles" name="visibility_high_miles" required min="0" max="15" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="visibility_avg_miles">Average Visibility (miles)</label>
+                            <input type="number" id="visibility_avg_miles" name="visibility_avg_miles" required min="0" max="15" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="visibility_low_miles">Low Visibility (miles)</label>
+                            <input type="number" id="visibility_low_miles" name="visibility_low_miles" required min="0" max="15" step="0.1">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="predict-btn" id="predictBtn">
+                    🔮 Predict Rainfall
+                </button>
+            </form>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Analyzing weather data...</p>
+            </div>
+
+            <div class="error" id="error"></div>
+
+            <div class="result-container" id="result">
+                <h2>Predicted Rainfall</h2>
+                <div class="result-value" id="resultValue">0.000</div>
+                <div class="result-message" id="resultMessage">inches</div>
+            </div>
+
+            <div class="info-section">
+                <h3>ℹ️ About This Prediction</h3>
+                <p>This rainfall prediction system uses machine learning algorithms trained on historical weather data from Austin, Texas. The model analyzes various weather parameters including temperature, humidity, wind speed, pressure, and visibility to predict the amount of rainfall in inches.</p>
+                <p><strong>Note:</strong> This is a predictive model and should be used for reference purposes. Actual weather conditions may vary.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('predictionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const data = {};
+            
+            // Convert form data to object
+            for (let [key, value] of formData.entries()) {
+                data[key] = parseFloat(value);
+            }
+            
+            // Show loading
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('error').classList.remove('show');
+            document.getElementById('result').classList.remove('show');
+            document.getElementById('predictBtn').disabled = true;
+            
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('resultValue').textContent = result.prediction;
+                    document.getElementById('resultMessage').textContent = `inches of rainfall predicted`;
+                    document.getElementById('result').classList.add('show');
+                } else {
+                    throw new Error(result.error || 'Prediction failed');
+                }
+            } catch (error) {
+                document.getElementById('error').textContent = 'Error: ' + error.message;
+                document.getElementById('error').classList.add('show');
+            } finally {
+                document.getElementById('loading').classList.remove('show');
+                document.getElementById('predictBtn').disabled = false;
+            }
+        });
+
+        // Add some sample data for testing
+        function fillSampleData() {
+            const sampleData = {
+                'temp_high_f': 75,
+                'temp_avg_f': 65,
+                'temp_low_f': 55,
+                'dew_point_avg_f': 50,
+                'humidity_high_percent': 85,
+                'humidity_avg_percent': 70,
+                'humidity_low_percent': 55,
+                'sea_level_pressure_avg_inches': 30.15,
+                'visibility_high_miles': 10,
+                'visibility_avg_miles': 8,
+                'visibility_low_miles': 5,
+                'wind_high_mph': 15,
+                'wind_avg_mph': 8,
+                'wind_gust_mph': 25
+            };
+            
+            for (const [key, value] of Object.entries(sampleData)) {
+                const input = document.getElementById(key);
+                if (input) {
+                    input.value = value;
+                }
+            }
+        }
+
+        // Add a button to fill sample data (for testing)
+        const sampleBtn = document.createElement('button');
+        sampleBtn.textContent = '📋 Fill Sample Data';
+        sampleBtn.type = 'button';
+        sampleBtn.style.cssText = `
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 0.9em;
+        `;
+        sampleBtn.onclick = fillSampleData;
+        document.querySelector('.predict-btn').parentNode.insertBefore(sampleBtn, document.querySelector('.predict-btn'));
+    </script>
+</body>
+</html>
